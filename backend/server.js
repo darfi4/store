@@ -13,18 +13,67 @@ app.use(express.static(path.join(__dirname, 'public')));
 // In-memory хранилище
 const users = new Map();
 const verificationCodes = new Map();
+const resetCodes = new Map();
 
 // Игры
 const games = [
-    { id: 1, name: 'Roblox', category: 'Sandbox', image: 'https://via.placeholder.com/300x180/667eea/white?text=Roblox' },
-    { id: 2, name: 'Minecraft', category: 'Sandbox', image: 'https://via.placeholder.com/300x180/764ba2/white?text=Minecraft' },
-    { id: 3, name: 'Fortnite', category: 'Shooter', image: 'https://via.placeholder.com/300x180/ff6b6b/white?text=Fortnite' }
+    { 
+        id: 1, 
+        name: 'Roblox', 
+        category: 'Sandbox', 
+        image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400&h=250&fit=crop',
+        description: 'Многопользовательская платформа с тысячами игр',
+        accounts: 127
+    },
+    { 
+        id: 2, 
+        name: 'Minecraft', 
+        category: 'Sandbox', 
+        image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&h=250&fit=crop',
+        description: 'Кубковый мир с безграничными возможностями',
+        accounts: 89
+    },
+    { 
+        id: 3, 
+        name: 'Fortnite', 
+        category: 'Shooter', 
+        image: 'https://images.unsplash.com/photo-1542751110-97427bbecf20?w=400&h=250&fit=crop',
+        description: 'Королевская битва с строительством',
+        accounts: 203
+    },
+    { 
+        id: 4, 
+        name: 'Valorant', 
+        category: 'Shooter', 
+        image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400&h=250&fit=crop',
+        description: 'Тактический шутер с уникальными агентами',
+        accounts: 156
+    },
+    { 
+        id: 5, 
+        name: 'CS:GO', 
+        category: 'Shooter', 
+        image: 'https://images.unsplash.com/photo-1542751110-97427bbecf20?w=400&h=250&fit=crop',
+        description: 'Классический тактический шутер',
+        accounts: 312
+    },
+    { 
+        id: 6, 
+        name: 'GTA V', 
+        category: 'Action', 
+        image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&h=250&fit=crop',
+        description: 'Открытый мир с безграничными возможностями',
+        accounts: 178
+    }
 ];
 
 const categories = [
-    { id: 1, name: 'MMORPG', icon: 'fa-gamepad' },
-    { id: 2, name: 'Shooter', icon: 'fa-crosshairs' },
-    { id: 3, name: 'Strategy', icon: 'fa-chess' }
+    { id: 1, name: 'Shooter', icon: 'fas fa-crosshairs', color: '#ff6b6b' },
+    { id: 2, name: 'Sandbox', icon: 'fas fa-cube', color: '#4ecdc4' },
+    { id: 3, name: 'MMORPG', icon: 'fas fa-dragon', color: '#45b7d1' },
+    { id: 4, name: 'Strategy', icon: 'fas fa-chess', color: '#96ceb4' },
+    { id: 5, name: 'Action', icon: 'fas fa-running', color: '#feca57' },
+    { id: 6, name: 'Sports', icon: 'fas fa-football-ball', color: '#ff9ff3' }
 ];
 
 // Функция отправки email
@@ -73,7 +122,23 @@ app.get('/api/health', (req, res) => {
 });
 
 app.get('/api/games', (req, res) => {
-    res.json(games);
+    const { category, search } = req.query;
+    let filteredGames = games;
+
+    if (category && category !== 'all') {
+        filteredGames = filteredGames.filter(game => 
+            game.category.toLowerCase() === category.toLowerCase()
+        );
+    }
+
+    if (search) {
+        const searchLower = search.toLowerCase();
+        filteredGames = filteredGames.filter(game =>
+            game.name.toLowerCase().includes(searchLower)
+        );
+    }
+
+    res.json(filteredGames);
 });
 
 app.get('/api/categories', (req, res) => {
@@ -82,43 +147,94 @@ app.get('/api/categories', (req, res) => {
 
 app.get('/api/games/search', (req, res) => {
     const query = req.query.q?.toLowerCase() || '';
-    const results = games.filter(game => game.name.toLowerCase().includes(query));
+    const results = games.filter(game => 
+        game.name.toLowerCase().includes(query)
+    ).slice(0, 6);
     res.json(results);
 });
 
-// Регистрация
+// Регистрация - ФИКС БЕСКОНЕЧНОЙ ЗАГРУЗКИ
 app.post('/api/register', async (req, res) => {
     try {
         const { name, email, password } = req.body;
         
+        console.log('📝 Registration attempt:', { name, email });
+        
         if (!name || !email || !password) {
-            return res.status(400).json({ error: 'All fields required' });
+            return res.status(400).json({ 
+                success: false,
+                error: 'Все поля обязательны для заполнения' 
+            });
+        }
+
+        // Проверка email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Неверный формат email'
+            });
         }
 
         if (users.has(email)) {
-            return res.status(400).json({ error: 'User exists' });
+            return res.status(400).json({
+                success: false,
+                error: 'Пользователь с таким email уже существует'
+            });
         }
 
+        // Генерация кода
         const verificationCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-        verificationCodes.set(email, { code: verificationCode, expires: Date.now() + 1800000 });
+        verificationCodes.set(email, { 
+            code: verificationCode, 
+            expires: Date.now() + 30 * 60 * 1000 
+        });
 
-        users.set(email, { name, email, password, isVerified: false, createdAt: new Date() });
+        // Сохранение пользователя
+        users.set(email, { 
+            id: Date.now(),
+            name, 
+            email, 
+            password, 
+            isVerified: false, 
+            createdAt: new Date() 
+        });
 
-        console.log(`📧 Code for ${email}: ${verificationCode}`);
+        console.log(`📧 Verification code for ${email}: ${verificationCode}`);
 
+        // Отправка email
         const emailResult = await sendEmail(
             email,
-            'Verify Email - Kirieshka.store',
-            `<div><h2>Verify Email</h2><p>Code: <strong>${verificationCode}</strong></p></div>`
+            'Подтверждение регистрации - Kirieshka.store',
+            `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; background: #fafafa;">
+                <h2 style="color: #2c3e50; text-align: center; margin-bottom: 20px;">Добро пожаловать в Kirieshka.store! 🎮</h2>
+                <p>Здравствуйте, <strong>${name}</strong>!</p>
+                <p>Ваш код подтверждения:</p>
+                <div style="text-align: center; margin: 30px 0; padding: 20px; background: white; border-radius: 8px; border: 2px dashed #3498db;">
+                    <span style="font-size: 32px; font-weight: bold; color: #e74c3c; letter-spacing: 3px;">${verificationCode}</span>
+                </div>
+                <p style="color: #7f8c8d;">Код действителен <strong>30 минут</strong>.</p>
+                <p style="color: #7f8c8d;">Если вы не регистрировались, проигнорируйте это письмо.</p>
+            </div>
+            `
         );
 
+        // ВАЖНО: Всегда возвращаем success: true даже если email не отправился
         res.json({ 
             success: true,
-            message: emailResult.success ? 'Code sent to email' : 'Code generated (check logs)'
+            message: emailResult.success 
+                ? 'Код подтверждения отправлен на ваш email' 
+                : 'Код сгенерирован (проверьте консоль Railway)',
+            note: !emailResult.success ? 'Email не настроен. Код показан в логах Railway.' : undefined
         });
 
     } catch (error) {
-        res.status(500).json({ error: 'Server error' });
+        console.error('❌ Registration error:', error);
+        res.status(500).json({ 
+            success: false,
+            error: 'Ошибка сервера. Попробуйте позже.' 
+        });
     }
 });
 
@@ -126,20 +242,58 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/verify-email', (req, res) => {
     try {
         const { email, code } = req.body;
+        
+        console.log('🔐 Verification attempt:', { email, code });
+        
         const user = users.get(email);
         const storedCode = verificationCodes.get(email);
 
-        if (!user || !storedCode || storedCode.code !== code.toUpperCase()) {
-            return res.status(400).json({ error: 'Invalid code' });
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                error: 'Пользователь не найден'
+            });
         }
 
+        if (!storedCode) {
+            return res.status(400).json({
+                success: false,
+                error: 'Код не найден. Запросите новый код.'
+            });
+        }
+
+        if (storedCode.code !== code.toUpperCase()) {
+            return res.status(400).json({
+                success: false,
+                error: 'Неверный код подтверждения'
+            });
+        }
+
+        if (storedCode.expires < Date.now()) {
+            verificationCodes.delete(email);
+            return res.status(400).json({
+                success: false,
+                error: 'Код истёк. Запросите новый код.'
+            });
+        }
+
+        // Активация аккаунта
         user.isVerified = true;
         verificationCodes.delete(email);
 
-        res.json({ success: true, message: 'Email verified!' });
+        console.log('✅ Email verified for:', email);
+
+        res.json({
+            success: true,
+            message: 'Email успешно подтверждён! Теперь вы можете войти в систему.'
+        });
 
     } catch (error) {
-        res.status(500).json({ error: 'Server error' });
+        console.error('❌ Verification error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Ошибка сервера'
+        });
     }
 });
 
@@ -147,15 +301,78 @@ app.post('/api/verify-email', (req, res) => {
 app.post('/api/login', (req, res) => {
     try {
         const { email, password } = req.body;
+        
         const user = users.get(email);
+        if (!user) {
+            return res.status(400).json({ 
+                success: false,
+                error: 'Пользователь не найден' 
+            });
+        }
 
-        if (!user || !user.isVerified || user.password !== password) {
-            return res.status(400).json({ error: 'Invalid credentials' });
+        if (!user.isVerified) {
+            return res.status(400).json({
+                success: false,
+                error: 'Подтвердите email перед входом'
+            });
+        }
+
+        if (user.password !== password) {
+            return res.status(400).json({
+                success: false,
+                error: 'Неверный пароль'
+            });
         }
 
         res.json({
             success: true,
-            user: { name: user.name, email: user.email }
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email
+            }
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'Ошибка сервера'
+        });
+    }
+});
+
+// Запрос сброса пароля
+app.post('/api/forgot-password', async (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        const user = users.get(email);
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                error: 'Пользователь не найден'
+            });
+        }
+
+        const resetCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+        resetCodes.set(email, {
+            code: resetCode,
+            expires: Date.now() + 30 * 60 * 1000
+        });
+
+        console.log(`🔐 Reset code for ${email}: ${resetCode}`);
+
+        const emailResult = await sendEmail(
+            email,
+            'Сброс пароля - Kirieshka.store',
+            `<div><h2>Сброс пароля</h2><p>Код: <strong>${resetCode}</strong></p></div>`
+        );
+
+        res.json({
+            success: true,
+            message: emailResult.success 
+                ? 'Код сброса отправлен на email' 
+                : 'Код сгенерирован (проверьте логи)'
         });
 
     } catch (error) {
@@ -171,4 +388,5 @@ app.get('*', (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`✅ Health: http://localhost:${PORT}/api/health`);
 });
