@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="/css/style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <meta name="description" content="Kirieshka.store - премиум игровые аккаунты по лучшим ценам">
 </head>
 <body>
     <!-- Navigation -->
@@ -16,12 +15,6 @@
             <div class="nav-logo">
                 <i class="fas fa-crown"></i>
                 <span>Kirieshka.store</span>
-            </div>
-            <div class="nav-links">
-                <a href="#home" class="nav-link">Главная</a>
-                <a href="#games" class="nav-link">Игры</a>
-                <a href="#categories" class="nav-link">Категории</a>
-                <a href="#features" class="nav-link">Преимущества</a>
             </div>
             <div class="nav-auth">
                 <button class="auth-btn login-btn" id="loginBtn">
@@ -33,17 +26,11 @@
                     <span>Регистрация</span>
                 </button>
             </div>
-            <div class="nav-toggle">
-                <i class="fas fa-bars"></i>
-            </div>
         </div>
     </nav>
 
     <!-- Hero Section -->
-    <section class="hero" id="home">
-        <div class="hero-background">
-            <div class="hero-particles"></div>
-        </div>
+    <section class="hero">
         <div class="hero-container">
             <div class="hero-content">
                 <h1 class="hero-title">
@@ -65,24 +52,6 @@
                         <div class="stat-label">поддержка</div>
                     </div>
                 </div>
-                <button class="cta-button" onclick="document.getElementById('games').scrollIntoView({behavior: 'smooth'})">
-                    <span>Начать покупки</span>
-                    <i class="fas fa-arrow-right"></i>
-                </button>
-            </div>
-            <div class="hero-visual">
-                <div class="floating-card">
-                    <i class="fab fa-roblox"></i>
-                    <span>Roblox</span>
-                </div>
-                <div class="floating-card">
-                    <i class="fas fa-cube"></i>
-                    <span>Minecraft</span>
-                </div>
-                <div class="floating-card">
-                    <i class="fas fa-crosshairs"></i>
-                    <span>Fortnite</span>
-                </div>
             </div>
         </div>
     </section>
@@ -90,10 +59,6 @@
     <!-- Search Section -->
     <section class="search-section">
         <div class="container">
-            <div class="search-header">
-                <h2>Найдите свою игру</h2>
-                <p>Быстрый поиск по сотням игровых аккаунтов</p>
-            </div>
             <div class="search-box">
                 <div class="search-input-wrapper">
                     <i class="fas fa-search search-icon"></i>
@@ -105,97 +70,28 @@
                 </div>
                 <div class="search-suggestions" id="searchSuggestions"></div>
             </div>
-            <div class="popular-tags">
-                <span>Популярное:</span>
-                <div class="tags">
-                    <span class="tag" onclick="store.selectSuggestion('Roblox')">Roblox</span>
-                    <span class="tag" onclick="store.selectSuggestion('Minecraft')">Minecraft</span>
-                    <span class="tag" onclick="store.selectSuggestion('Fortnite')">Fortnite</span>
-                    <span class="tag" onclick="store.selectSuggestion('Valorant')">Valorant</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Categories -->
-    <section class="categories" id="categories">
-        <div class="container">
-            <div class="section-header">
-                <h2>Категории игр</h2>
-                <p>Выберите вашу любимую категорию</p>
-            </div>
-            <div class="categories-grid" id="categoriesGrid">
-                <!-- Categories loaded dynamically -->
-            </div>
         </div>
     </section>
 
     <!-- Games Grid -->
     <section class="games" id="games">
         <div class="container">
-            <div class="section-header">
-                <h2>Популярные игры</h2>
-                <p>Аккаунты с лучшими отзывами</p>
-            </div>
+            <h2>Популярные игры</h2>
             <div class="games-grid" id="gamesGrid">
                 <!-- Games loaded dynamically -->
             </div>
         </div>
     </section>
 
-    <!-- Features -->
-    <section class="features" id="features">
-        <div class="container">
-            <div class="section-header">
-                <h2>Почему выбирают нас</h2>
-                <p>Лучший сервис для покупки игровых аккаунтов</p>
-            </div>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <h3>100% Безопасно</h3>
-                    <p>Гарантия возврата средств и защита от мошенников</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-bolt"></i>
-                    </div>
-                    <h3>Мгновенная доставка</h3>
-                    <p>Получите аккаунт сразу после подтверждения оплаты</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-headset"></i>
-                    </div>
-                    <h3>Поддержка 24/7</h3>
-                    <p>Наша команда всегда готова помочь вам</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-gem"></i>
-                    </div>
-                    <h3>Премиум качество</h3>
-                    <p>Только проверенные аккаунты с историей</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
     <!-- Auth Modals -->
     <div id="loginModal" class="modal">
-        <div class="modal-backdrop"></div>
         <div class="modal-container">
             <div class="modal-content">
                 <button class="modal-close" onclick="store.closeModal('loginModal')">
                     <i class="fas fa-times"></i>
                 </button>
                 <div class="auth-step" id="loginStep">
-                    <div class="auth-header">
-                        <h2>Вход в аккаунт</h2>
-                        <p>Войдите в свой аккаунт Kirieshka.store</p>
-                    </div>
+                    <h2>Вход в аккаунт</h2>
                     <form class="auth-form" id="loginForm">
                         <div class="input-group">
                             <i class="fas fa-envelope"></i>
@@ -207,50 +103,21 @@
                         </div>
                         <button type="submit" class="auth-submit-btn">
                             <span>Войти</span>
-                            <i class="fas fa-arrow-right"></i>
                         </button>
                     </form>
-                    <div class="auth-footer">
-                        <a href="#" onclick="store.showAuthStep('forgotPasswordStep')">Забыли пароль?</a>
-                        <span>Нет аккаунта? <a href="#" onclick="store.showRegister()">Зарегистрироваться</a></span>
-                    </div>
-                </div>
-
-                <div class="auth-step" id="forgotPasswordStep" style="display: none;">
-                    <div class="auth-header">
-                        <h2>Восстановление пароля</h2>
-                        <p>Введите email для получения кода сброса</p>
-                    </div>
-                    <form class="auth-form" id="forgotPasswordForm">
-                        <div class="input-group">
-                            <i class="fas fa-envelope"></i>
-                            <input type="email" id="forgotEmail" placeholder="Ваш Email" required>
-                        </div>
-                        <button type="submit" class="auth-submit-btn">
-                            <span>Отправить код</span>
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
-                    </form>
-                    <div class="auth-footer">
-                        <a href="#" onclick="store.showAuthStep('loginStep')">Вернуться к входу</a>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <div id="registerModal" class="modal">
-        <div class="modal-backdrop"></div>
         <div class="modal-container">
             <div class="modal-content">
                 <button class="modal-close" onclick="store.closeModal('registerModal')">
                     <i class="fas fa-times"></i>
                 </button>
                 <div class="auth-step" id="registerStep">
-                    <div class="auth-header">
-                        <h2>Создать аккаунт</h2>
-                        <p>Присоединяйтесь к Kirieshka.store</p>
-                    </div>
+                    <h2>Создать аккаунт</h2>
                     <form class="auth-form" id="registerForm">
                         <div class="input-group">
                             <i class="fas fa-user"></i>
@@ -265,73 +132,28 @@
                             <input type="password" name="password" placeholder="Пароль" required>
                         </div>
                         <button type="submit" class="auth-submit-btn">
-                            <span>Продолжить</span>
-                            <i class="fas fa-arrow-right"></i>
+                            <span>Зарегистрироваться</span>
                         </button>
                     </form>
-                    <div class="auth-footer">
-                        <span>Уже есть аккаунт? <a href="#" onclick="store.showLogin()">Войти</a></span>
-                    </div>
                 </div>
 
                 <div class="auth-step" id="verifyEmailStep" style="display: none;">
-                    <div class="auth-header">
-                        <h2>Подтверждение Email</h2>
-                        <p id="verificationCodeHint">Введите код из письма</p>
-                    </div>
+                    <h2>Подтверждение Email</h2>
+                    <p id="verificationCodeHint">Введите код из письма</p>
                     <form class="auth-form" id="verifyEmailForm">
                         <input type="hidden" id="verifyEmail" name="email">
                         <div class="input-group">
                             <i class="fas fa-key"></i>
-                            <input type="text" name="code" placeholder="Код подтверждения" required maxlength="6">
+                            <input type="text" name="code" placeholder="Код подтверждения" required>
                         </div>
                         <button type="submit" class="auth-submit-btn">
                             <span>Подтвердить</span>
-                            <i class="fas fa-check"></i>
                         </button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <div class="footer-logo">
-                        <i class="fas fa-crown"></i>
-                        <span>Kirieshka.store</span>
-                    </div>
-                    <p>Премиум платформа для покупки игровых аккаунтов с гарантией качества и безопасности.</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Категории</h4>
-                    <a href="#" onclick="store.filterByCategory('Shooter')">Шутеры</a>
-                    <a href="#" onclick="store.filterByCategory('Sandbox')">Песочницы</a>
-                    <a href="#" onclick="store.filterByCategory('MMORPG')">MMORPG</a>
-                    <a href="#" onclick="store.filterByCategory('Strategy')">Стратегии</a>
-                </div>
-                <div class="footer-section">
-                    <h4>Поддержка</h4>
-                    <a href="#">Помощь</a>
-                    <a href="#">Контакты</a>
-                    <a href="#">FAQ</a>
-                    <a href="#">Гарантии</a>
-                </div>
-                <div class="footer-section">
-                    <h4>Аккаунт</h4>
-                    <a href="#" onclick="store.showLogin()">Войти</a>
-                    <a href="#" onclick="store.showRegister()">Регистрация</a>
-                    <a href="#" onclick="store.showAuthStep('forgotPasswordStep')">Восстановить пароль</a>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2024 Kirieshka.store. Все права защищены.</p>
-            </div>
-        </div>
-    </footer>
 
     <script src="/js/main.js"></script>
 </body>
