@@ -1,18 +1,5 @@
-// Mock data for demonstration
-const gamesData = {
-    categories: [
-        { id: 1, name: 'MMORPG', icon: 'fa-gamepad' },
-        { id: 2, name: 'Shooter', icon: 'fa-crosshairs' },
-        { id: 3, name: 'Strategy', icon: 'fa-chess' },
-        { id: 4, name: 'Sandbox', icon: 'fa-cube' }
-    ],
-    games: [
-        { id: 1, name: 'Roblox', category: 'Sandbox', image: 'https://via.placeholder.com/300x150?text=Roblox' },
-        { id: 2, name: 'Minecraft', category: 'Sandbox', image: 'https://via.placeholder.com/300x150?text=Minecraft' },
-        { id: 3, name: 'Fortnite', category: 'Shooter', image: 'https://via.placeholder.com/300x150?text=Fortnite' },
-        { id: 4, name: 'World of Warcraft', category: 'MMORPG', image: 'https://via.placeholder.com/300x150?text=WoW' }
-    ]
-};
+// API base URL
+const API_BASE_URL = window.location.origin;
 
 // DOM Elements
 const categoriesGrid = document.getElementById('categoriesGrid');
@@ -31,32 +18,75 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
 });
 
-function loadCategories() {
-    categoriesGrid.innerHTML = gamesData.categories.map(category => `
-        <div class="category-card" data-category="${category.name}">
-            <i class="fas ${category.icon}"></i>
-            <h3>${category.name}</h3>
-        </div>
-    `).join('');
+async function loadCategories() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/categories`);
+        const categories = await response.json();
+        
+        categoriesGrid.innerHTML = categories.map(category => `
+            <div class="category-card" data-category="${category.name}">
+                <i class="fas ${category.icon}"></i>
+                <h3>${category.name}</h3>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading categories:', error);
+        // Fallback data
+        categoriesGrid.innerHTML = `
+            <div class="category-card">
+                <i class="fas fa-gamepad"></i>
+                <h3>MMORPG</h3>
+            </div>
+            <div class="category-card">
+                <i class="fas fa-crosshairs"></i>
+                <h3>Shooter</h3>
+            </div>
+            <div class="category-card">
+                <i class="fas fa-chess"></i>
+                <h3>Strategy</h3>
+            </div>
+            <div class="category-card">
+                <i class="fas fa-cube"></i>
+                <h3>Sandbox</h3>
+            </div>
+        `;
+    }
 }
 
-function loadGames() {
-    gamesGrid.innerHTML = gamesData.games.map(game => `
-        <div class="game-card" data-game="${game.name}">
-            <img src="${game.image}" alt="${game.name}">
-            <h3>${game.name}</h3>
-            <p>${game.category}</p>
-        </div>
-    `).join('');
+async function loadGames() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/games`);
+        const games = await response.json();
+        
+        gamesGrid.innerHTML = games.map(game => `
+            <div class="game-card" data-game="${game.name}">
+                <img src="${game.image}" alt="${game.name}" 
+                     onerror="this.src='https://via.placeholder.com/300x150/667eea/white?text=${game.name}'">
+                <h3>${game.name}</h3>
+                <p>${game.category}</p>
+                <p class="game-description">${game.description}</p>
+                <button class="btn btn-primary">Смотреть аккаунты</button>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading games:', error);
+    }
 }
 
 function setupEventListeners() {
     // Search functionality
     searchInput.addEventListener('input', function(e) {
         const query = e.target.value.toLowerCase();
-        if (query.length > 2) {
+        if (query.length > 1) {
             showSearchSuggestions(query);
         } else {
+            searchSuggestions.style.display = 'none';
+        }
+    });
+
+    // Close search suggestions when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
             searchSuggestions.style.display = 'none';
         }
     });
@@ -84,54 +114,95 @@ function setupEventListeners() {
     document.getElementById('registerForm').addEventListener('submit', handleRegister);
 }
 
-function showSearchSuggestions(query) {
-    const suggestions = gamesData.games.filter(game => 
-        game.name.toLowerCase().includes(query)
-    );
-    
-    if (suggestions.length > 0) {
-        searchSuggestions.innerHTML = suggestions.map(game => `
-            <div class="search-suggestion-item" data-game="${game.name}">
-                ${game.name} - ${game.category}
-            </div>
-        `).join('');
-        searchSuggestions.style.display = 'block';
+async function showSearchSuggestions(query) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/games/search?q=${encodeURIComponent(query)}`);
+        const suggestions = await response.json();
         
-        // Add click event to suggestions
-        document.querySelectorAll('.search-suggestion-item').forEach(item => {
-            item.addEventListener('click', function() {
-                searchInput.value = this.getAttribute('data-game');
-                searchSuggestions.style.display = 'none';
-                // Here you would typically navigate to the game page
-                alert(`Переход к игре: ${this.getAttribute('data-game')}`);
+        if (suggestions.length > 0) {
+            searchSuggestions.innerHTML = suggestions.map(game => `
+                <div class="search-suggestion-item" data-game="${game.name}">
+                    <i class="fas fa-gamepad"></i>
+                    <span>${game.name}</span>
+                    <small>${game.category}</small>
+                </div>
+            `).join('');
+            searchSuggestions.style.display = 'block';
+            
+            // Add click event to suggestions
+            document.querySelectorAll('.search-suggestion-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const gameName = this.querySelector('span').textContent;
+                    searchInput.value = gameName;
+                    searchSuggestions.style.display = 'none';
+                    alert(`Поиск аккаунтов для игры: ${gameName}`);
+                });
             });
-        });
-    } else {
-        searchSuggestions.style.display = 'none';
+        } else {
+            searchSuggestions.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Search error:', error);
     }
 }
 
-function handleLogin(e) {
+async function handleLogin(e) {
     e.preventDefault();
     const formData = new FormData(e.target);
     const email = formData.get('email');
     const password = formData.get('password');
     
-    // Here you would make an API call to your backend
-    console.log('Login attempt:', { email, password });
-    alert('Функция входа в разработке');
-    loginModal.style.display = 'none';
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, password })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(`Успешный вход! Добро пожаловать, ${result.user.name}`);
+            loginModal.style.display = 'none';
+            e.target.reset();
+        } else {
+            alert(result.error);
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        alert('Ошибка при входе. Попробуйте еще раз.');
+    }
 }
 
-function handleRegister(e) {
+async function handleRegister(e) {
     e.preventDefault();
     const formData = new FormData(e.target);
     const name = formData.get('name');
     const email = formData.get('email');
     const password = formData.get('password');
     
-    // Here you would make an API call to your backend
-    console.log('Registration attempt:', { name, email, password });
-    alert('Функция регистрации в разработке. Код подтверждения будет отправлен на email.');
-    registerModal.style.display = 'none';
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name, email, password })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(`${result.message}\nКод подтверждения: ${result.verificationCode}`);
+            registerModal.style.display = 'none';
+            e.target.reset();
+        } else {
+            alert(result.error);
+        }
+    } catch (error) {
+        console.error('Registration error:', error);
+        alert('Ошибка при регистрации. Попробуйте еще раз.');
+    }
 }
