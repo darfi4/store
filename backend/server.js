@@ -5,7 +5,7 @@ const nodemailer = require('nodemailer');
 
 const app = express();
 
-// Middleware - ВАЖНО: правильные пути
+// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -49,7 +49,7 @@ const categories = [
     { id: 4, name: 'Strategy', icon: 'fas fa-chess' }
 ];
 
-// Функция отправки email
+// Улучшенная функция отправки email
 const sendEmail = async (to, subject, html) => {
     try {
         if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
@@ -58,29 +58,48 @@ const sendEmail = async (to, subject, html) => {
             return { success: false, testMode: true };
         }
 
+        // Улучшенные настройки для Railway
         const transporter = nodemailer.createTransport({
             service: 'gmail',
+            host: 'smtp.gmail.com',
+            port: 587,
+            secure: false,
             auth: {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASS
-            }
+            },
+            connectionTimeout: 10000, // 10 секунд
+            greetingTimeout: 10000,
+            socketTimeout: 10000,
+            debug: true, // Для отладки
+            logger: true
         });
+
+        // Проверяем соединение
+        await transporter.verify();
 
         const mailOptions = {
             from: `"Kirieshka.store" <${process.env.EMAIL_USER}>`,
             to: to,
             subject: subject,
-            html: html
+            html: html,
+            // Упрощаем письмо для лучшей доставки
+            text: html.replace(/<[^>]*>/g, '') // Текстовая версия
         };
 
-        await transporter.sendMail(mailOptions);
+        const result = await transporter.sendMail(mailOptions);
         console.log(`✅ Email sent to ${to}`);
-        return { success: true };
+        return { success: true, result: result };
         
     } catch (error) {
         console.error('❌ Email sending failed:', error);
+        
+        // Показываем код в логах при ошибке
         const code = html.match(/<strong>(\w+)<\/strong>/)?.[1];
-        if (code) console.log(`📧 [FALLBACK] Code for ${to}: ${code}`);
+        if (code) {
+            console.log(`📧 [FALLBACK] Code for ${to}: ${code}`);
+        }
+        
         return { success: false, error: error.message };
     }
 };
@@ -126,7 +145,7 @@ app.get('/api/games/search', (req, res) => {
     res.json(results);
 });
 
-// Регистрация
+// Регистрация - УСКОРЕННАЯ ВЕРСИЯ
 app.post('/api/register', async (req, res) => {
     try {
         const { name, email, password } = req.body;
@@ -166,29 +185,41 @@ app.post('/api/register', async (req, res) => {
 
         console.log(`📧 Verification code for ${email}: ${verificationCode}`);
 
-        // Отправка email
-        const emailResult = await sendEmail(
-            email,
-            'Подтверждение регистрации - Kirieshka.store',
-            `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h2 style="color: #6366f1;">Добро пожаловать в Kirieshka.store! 🎮</h2>
-                <p>Здравствуйте, <strong>${name}</strong>!</p>
-                <p>Ваш код подтверждения:</p>
-                <div style="text-align: center; margin: 30px 0; padding: 20px; background: #f8fafc; border-radius: 8px; border: 2px dashed #6366f1;">
-                    <span style="font-size: 32px; font-weight: bold; color: #e74c3c; letter-spacing: 3px;">${verificationCode}</span>
-                </div>
-                <p style="color: #6b7280;">Код действителен <strong>30 минут</strong>.</p>
-            </div>
-            `
-        );
+        // ОТПРАВКА EMAIL В ФОНОВОМ РЕЖИМЕ - не блокируем ответ
+        setTimeout(async () => {
+            try {
+                const emailResult = await sendEmail(
+                    email,
+                    'Подтверждение регистрации - Kirieshka.store',
+                    `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                        <h2 style="color: #6366f1;">Добро пожаловать в Kirieshka.store! 🎮</h2>
+                        <p>Здравствуйте, <strong>${name}</strong>!</p>
+                        <p>Ваш код подтверждения:</p>
+                        <div style="text-align: center; margin: 30px 0; padding: 20px; background: #f8fafc; border-radius: 8px; border: 2px dashed #6366f1;">
+                            <span style="font-size: 32px; font-weight: bold; color: #e74c3c; letter-spacing: 3px;">${verificationCode}</span>
+                        </div>
+                        <p style="color: #6b7280;">Код действителен <strong>30 минут</strong>.</p>
+                    </div>
+                    `
+                );
 
+                if (emailResult.success) {
+                    console.log(`✅ Email delivered to ${email}`);
+                } else {
+                    console.log(`❌ Email failed for ${email}: ${emailResult.error}`);
+                }
+            } catch (error) {
+                console.error('❌ Background email error:', error);
+            }
+        }, 0);
+
+        // СРАЗУ возвращаем ответ - не ждем отправки email
         res.json({ 
             success: true,
-            message: emailResult.success 
-                ? 'Код подтверждения отправлен на ваш email' 
-                : 'Код сгенерирован (проверьте консоль Railway)',
-            note: !emailResult.success ? 'Email не настроен. Код показан в логах Railway.' : undefined
+            message: 'Код подтверждения генерируется...',
+            note: 'Проверьте консоль Railway для получения кода',
+            immediate: true // Флаг для фронтенда
         });
 
     } catch (error) {
@@ -303,7 +334,7 @@ app.post('/api/login', (req, res) => {
     }
 });
 
-// Главная страница - ВАЖНО: правильный путь
+// Главная страница
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
