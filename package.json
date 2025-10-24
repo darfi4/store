@@ -2,9 +2,16 @@
   "name": "kirieshka-store",
   "version": "1.0.0",
   "description": "Game accounts marketplace",
+  "main": "backend/server.js",
   "scripts": {
-    "start": "cd backend && node server.js",
-    "install-deps": "cd backend && npm install"
+    "start": "node backend/server.js",
+    "dev": "node backend/server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "nodemailer": "^6.9.1",
+    "dotenv": "^16.0.3"
   },
   "engines": {
     "node": ">=18.0.0"

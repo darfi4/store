@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "cd backend && node server.js"
+startCommand = "npm start"
 
 [build.environment]
 NODE_VERSION = "18.0.0"
