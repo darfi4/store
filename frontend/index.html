@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kirieshka.store - Продажа игровых аккаунтов</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1>Kirieshka.store</h1>
+            </div>
+            <nav class="nav">
+                <a href="#home">Главная</a>
+                <a href="#catalog">Каталог</a>
+                <a href="#about">О нас</a>
+                <a href="#contacts">Контакты</a>
+            </nav>
+            <div class="auth-buttons">
+                <button id="loginBtn" class="btn btn-outline">Войти</button>
+                <button id="registerBtn" class="btn btn-primary">Регистрация</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Search Section -->
+    <section class="search-section">
+        <div class="container">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Поиск игр...">
+                <button id="searchBtn"><i class="fas fa-search"></i></button>
+                <div id="searchSuggestions" class="search-suggestions"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories -->
+    <section class="categories">
+        <div class="container">
+            <h2>Категории</h2>
+            <div class="categories-grid" id="categoriesGrid">
+                <!-- Categories will be loaded dynamically -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Games Grid -->
+    <section class="games">
+        <div class="container">
+            <h2>Популярные игры</h2>
+            <div class="games-grid" id="gamesGrid">
+                <!-- Games will be loaded dynamically -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Auth Modals -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Вход</h2>
+            <form id="loginForm">
+                <input type="email" placeholder="Email" required>
+                <input type="password" placeholder="Пароль" required>
+                <button type="submit" class="btn btn-primary">Войти</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Регистрация</h2>
+            <form id="registerForm">
+                <input type="text" placeholder="Имя" required>
+                <input type="email" placeholder="Email" required>
+                <input type="password" placeholder="Пароль" required>
+                <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
