@@ -5,6 +5,20 @@ const nodemailer = require('nodemailer');
 
 const app = express();
 
+// Сессии (добавь эти переменные после импортов)
+const sessions = new Map();
+
+// Middleware для проверки сессии
+app.use((req, res, next) => {
+  const sessionId = req.headers.authorization || req.query.token;
+  
+  if (sessionId && sessions.has(sessionId)) {
+    req.user = sessions.get(sessionId);
+  }
+  
+  next();
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -292,46 +306,55 @@ app.post('/api/verify-email', (req, res) => {
 
 // Логин
 app.post('/api/login', (req, res) => {
-    try {
-        const { email, password } = req.body;
-        
-        const user = users.get(email);
-        if (!user) {
-            return res.status(400).json({ 
-                success: false,
-                error: 'Пользователь не найден' 
-            });
-        }
-
-        if (!user.isVerified) {
-            return res.status(400).json({
-                success: false,
-                error: 'Подтвердите email перед входом'
-            });
-        }
-
-        if (user.password !== password) {
-            return res.status(400).json({
-                success: false,
-                error: 'Неверный пароль'
-            });
-        }
-
-        res.json({
-            success: true,
-            user: {
-                id: user.id,
-                name: user.name,
-                email: user.email
-            }
-        });
-
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: 'Ошибка сервера'
-        });
+  try {
+    const { email, password } = req.body;
+    
+    const user = users.get(email);
+    if (!user) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Пользователь не найден' 
+      });
     }
+
+    if (!user.isVerified) {
+      return res.status(400).json({
+        success: false,
+        error: 'Подтвердите email перед входом'
+      });
+    }
+
+    if (user.password !== password) {
+      return res.status(400).json({
+        success: false,
+        error: 'Неверный пароль'
+      });
+    }
+
+    // Создаем сессию
+    const sessionId = Math.random().toString(36).substring(2) + Date.now().toString(36);
+    sessions.set(sessionId, {
+      id: user.id,
+      name: user.name,
+      email: user.email
+    });
+
+    res.json({
+      success: true,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email
+      },
+      sessionId: sessionId
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Ошибка сервера'
+    });
+  }
 });
 
 // Главная страница
